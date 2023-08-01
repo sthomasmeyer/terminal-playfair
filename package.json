@@ -1,0 +1,14 @@
+{
+  "name": "lord-playfair",
+  "version": "1.0.0",
+  "description": "a command-line tool for Playfair cipher encryption and decryption",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "R. Seth Thomasmeyer",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.6.2"
+  }
+}
