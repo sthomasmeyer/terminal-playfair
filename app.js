@@ -2,9 +2,10 @@ const playfairEncryption = require('./playfairEncryption');
 const playfairDecryption = require('./playfairDecryption');
 
 const readline = require('readline');
+const buildMatrix = require('./matrixBuilder');
 
 console.log(
-  `\nWelcome to Terminal Playfair, the home for all of your Playfair Cipher-related cryptography needs.\n`
+  `\nWelcome to Terminal Playfair, the home for all of your Playfair cipher-related cryptography needs.\n`
 );
 
 const rl = readline.createInterface({
@@ -14,7 +15,7 @@ const rl = readline.createInterface({
 
 function encryptOrDecrypt() {
   rl.question(
-    `Do you need help (1) encrypting plaintext or (2) decrypting ciphertext? \n`,
+    `Do you need help (1) encrypting plaintext, (2) decrypting ciphertext, or (3) visualizing a 5x5 matrix? \nType 1, 2, or 3 and press enter.\n`,
     (res) => {
       const encryptResponses = [
         '1',
@@ -30,6 +31,13 @@ function encryptOrDecrypt() {
         'decrypting',
         'decrypting ciphertext'
       ];
+      const visualizeResponses = [
+        '3',
+        'v',
+        'visualize',
+        'visualizing',
+        'visualizing a matrix'
+      ];
 
       res = res.toLowerCase().trim();
 
@@ -37,6 +45,8 @@ function encryptOrDecrypt() {
         executePlayfairEncryption();
       } else if (decryptResponses.includes(res)) {
         executePlayfairDecryption();
+      } else if (visualizeResponses.includes(res)) {
+        matrixVisualizer();
       } else {
         console.log(`\nInvalid response, ${res}, please try again.`);
         encryptOrDecrypt();
@@ -68,6 +78,13 @@ function executePlayfairDecryption() {
       console.log(`\n${playfairDecryption(ciphertext, keyword)}\n`);
       rl.close();
     });
+  });
+}
+
+function matrixVisualizer() {
+  rl.question(`\nEnter the keyword: \n`, (res) => {
+    console.log(buildMatrix(res));
+    rl.close();
   });
 }
 

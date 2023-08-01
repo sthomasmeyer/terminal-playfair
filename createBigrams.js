@@ -3,8 +3,8 @@
  * plaintext {string} - the original, unencrypted message
  */
 function createBigrams(plaintext) {
-  let removeSpaces = plaintext.replaceAll(' ', '');
-  let cleanText = removeSpaces.toUpperCase();
+  // This regular expression removes any character that is not in the Latin alphabet (A-Z).
+  let cleanText = plaintext.replace(/[^A-Za-z]/g, '').toUpperCase();
 
   let bigrams = [];
 
