@@ -1,12 +1,9 @@
-/*
+/**
  * Construct a 5x5 matrix consisting of each letter in the modified (i/j) alphabet.
  * keyword {string}
  */
 function buildMatrix(keyword) {
-  /*
-   * Clean the given string. Remember to remove any duplicate letters bc there can
-   * only be one instance of each letter in the matrix.
-   */
+  // Clean the given string, and remove duplicate letters.
   let removeSpaces = keyword.replaceAll(' ', '');
   let keyArray = [...new Set(removeSpaces.toUpperCase().split(''))];
 

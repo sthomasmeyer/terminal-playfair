@@ -1,4 +1,4 @@
-/*
+/**
  * Break plaintext into pairs of letters (a.k.a., "bigrams")
  * plaintext {string} - the original, unencrypted message
  */

@@ -1,4 +1,4 @@
-/*
+/**
  * Determine x- and y-coordinates for a given character (e.g., 'Q') in a matrix.
  * squareMatrix {array} - an array of arrays, 5x5 according to Playfair cipher norms
  * character {string} - a letter in the Latin alphabet (A-Z)
