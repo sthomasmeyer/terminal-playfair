@@ -15,15 +15,27 @@ function createBigrams(plaintext) {
     let pair = '';
 
     if (!letterTwo) {
-      // Does letter two exist? If not, add 'X' to complete the bigram.
+      // Does letter two exist? If not, add 'X' or 'Q' to complete the bigram.
       pair += letterOne;
-      pair += 'X';
+
+      if (letterOne !== 'X') {
+        pair += 'X';
+      } else {
+        // If the un-paired letter is 'X', add 'Q' to complete the bigram.
+        pair += 'Q';
+      }
 
       bigrams.push(pair);
     } else if (letterOne === letterTwo) {
-      // Replace letter two with 'X' to break up same-letter pairs.
+      // Replace letter two with 'X' or 'Q' to break up same-letter pairs.
       pair += letterOne;
-      pair += 'X';
+
+      if (letterOne !== 'X') {
+        pair += 'X';
+      } else {
+        // If the same-letter pair is (inexplicably) two 'X' characters, replace letter two with a 'Q'
+        pair += 'Q';
+      }
 
       bigrams.push(pair);
 
