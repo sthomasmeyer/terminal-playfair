@@ -1,14 +1,16 @@
 {
   "name": "lord-playfair",
   "version": "1.0.0",
-  "description": "a command-line tool for Playfair cipher encryption and decryption",
+  "description": "A zero-dependency command-line tool for Playfair cipher encryption and decryption.",
   "main": "app.js",
   "scripts": {
-    "test": "jest"
+    "start": "node app.js",
+    "test": "node --test",
+    "check": "node --check app.js && node --check playfair.js && node --check tests/playfair.test.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "author": "R. Seth Thomasmeyer",
-  "license": "MIT",
-  "devDependencies": {
-    "jest": "^29.6.2"
-  }
+  "license": "MIT"
 }
