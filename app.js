@@ -1,91 +1,143 @@
-const playfairEncryption = require('./playfairEncryption');
-const playfairDecryption = require('./playfairDecryption');
+/*
+ * Terminal Playfair CLI — Interactive Terminal Runner
+ * ---------------------------------------------------------------------------
+ * Thin readline wrapper around the playfair module for encrypting plaintext,
+ * decrypting ciphertext, and printing formatted 5x5 key squares.
+ */
 
-const readline = require('readline');
-const buildMatrix = require('./matrixBuilder');
+const readline = require('node:readline');
+const { stdin: input, stdout: output } = require('node:process');
+const { buildMatrix, encrypt, decrypt } = require('./playfair');
 
-console.log(
-  `\nWelcome to Terminal Playfair, the home for all of your Playfair cipher-related cryptography needs.\n`
-);
+const ENCRYPT_RESPONSES = new Set([
+  '1',
+  'e',
+  'encrypt',
+  'encrypting',
+  'encrypting plaintext',
+]);
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+const DECRYPT_RESPONSES = new Set([
+  '2',
+  'd',
+  'decrypt',
+  'decrypting',
+  'decrypting ciphertext',
+]);
 
-function encryptOrDecrypt() {
-  rl.question(
-    `Do you need help (1) encrypting plaintext, (2) decrypting ciphertext, or (3) visualizing a 5x5 matrix? \nType 1, 2, or 3 and press enter.\n`,
-    (res) => {
-      const encryptResponses = [
-        '1',
-        'e',
-        'encrypt',
-        'encrypting',
-        'encrypting plaintext'
-      ];
-      const decryptResponses = [
-        '2',
-        'd',
-        'decrypt',
-        'decrypting',
-        'decrypting ciphertext'
-      ];
-      const visualizeResponses = [
-        '3',
-        'v',
-        'visualize',
-        'visualizing',
-        'visualizing a matrix'
-      ];
+const VISUALIZE_RESPONSES = new Set([
+  '3',
+  'v',
+  'visualize',
+  'visualizing',
+  'visualizing a matrix',
+]);
 
-      res = res.toLowerCase().trim();
+// Using the readline async iterator queues buffered lines from piped stdin,
+// whereas repeated rl.question() calls drop lines after stdin emits 'end'.
+function createPrompter(rl) {
+  const lines = rl[Symbol.asyncIterator]();
 
-      if (encryptResponses.includes(res)) {
-        executePlayfairEncryption();
-      } else if (decryptResponses.includes(res)) {
-        executePlayfairDecryption();
-      } else if (visualizeResponses.includes(res)) {
-        matrixVisualizer();
-      } else {
-        console.log(`\nInvalid response, ${res}, please try again.`);
-        encryptOrDecrypt();
-      }
+  return async function ask(prompt) {
+    output.write(prompt);
+    const { value, done } = await lines.next();
+    return done ? null : value;
+  };
+}
+
+function formatMatrix(matrix) {
+  return matrix.map((row) => row.join(' ')).join('\n');
+}
+
+async function askMode(ask) {
+  while (true) {
+    const raw = await ask(
+      'Do you need help (1) encrypting plaintext, (2) decrypting ciphertext, or (3) visualizing a 5x5 matrix? \nType 1, 2, or 3 and press enter.\n'
+    );
+    if (raw === null) {
+      return null;
     }
+
+    const choice = raw.toLowerCase().trim();
+    if (ENCRYPT_RESPONSES.has(choice)) {
+      return 'encrypt';
+    }
+    if (DECRYPT_RESPONSES.has(choice)) {
+      return 'decrypt';
+    }
+    if (VISUALIZE_RESPONSES.has(choice)) {
+      return 'visualize';
+    }
+
+    console.log(`\nInvalid response, '${choice}', please try again.\n`);
+  }
+}
+
+async function runCli() {
+  console.log(
+    '\nWelcome to Terminal Playfair, the home for all of your Playfair cipher-related cryptography needs.\n'
   );
-}
 
-function executePlayfairEncryption() {
-  rl.question(`\nEnter the plaintext you want to encrypt: \n`, (res) => {
-    let plaintext = res;
+  const rl = readline.createInterface({ input, output });
+  const ask = createPrompter(rl);
 
-    rl.question(`Enter the keyword: \n`, (res) => {
-      let keyword = res;
+  try {
+    const mode = await askMode(ask);
+    if (mode === null) {
+      console.log('\nFarewell.');
+      return;
+    }
 
-      console.log(`\n${playfairEncryption(plaintext, keyword)}\n`);
-      rl.close();
-    });
-  });
-}
+    if (mode === 'visualize') {
+      const keyword = await ask('\nEnter the keyword: \n');
+      if (keyword === null) {
+        console.log('\nFarewell.');
+        return;
+      }
 
-function executePlayfairDecryption() {
-  rl.question(`\nEnter the ciphertext you want to decrypt: \n`, (res) => {
-    let ciphertext = res;
+      console.log(`\n${formatMatrix(buildMatrix(keyword))}\n`);
+      return;
+    }
 
-    rl.question(`Enter the keyword: \n`, (res) => {
-      let keyword = res;
+    const textPrompt =
+      mode === 'encrypt'
+        ? '\nEnter the plaintext you want to encrypt: \n'
+        : '\nEnter the ciphertext you want to decrypt: \n';
 
-      console.log(`\n${playfairDecryption(ciphertext, keyword)}\n`);
-      rl.close();
-    });
-  });
-}
+    const text = await ask(textPrompt);
+    if (text === null) {
+      console.log('\nFarewell.');
+      return;
+    }
 
-function matrixVisualizer() {
-  rl.question(`\nEnter the keyword: \n`, (res) => {
-    console.log(buildMatrix(res));
+    const keyword = await ask('Enter the keyword: \n');
+    if (keyword === null) {
+      console.log('\nFarewell.');
+      return;
+    }
+
+    if (mode === 'encrypt') {
+      console.log(`\n${encrypt(text, keyword)}\n`);
+      return;
+    }
+
+    try {
+      console.log(`\n${decrypt(text, keyword)}\n`);
+    } catch (err) {
+      if (err instanceof RangeError) {
+        console.error(`\nInvalid ciphertext: ${err.message}\n`);
+        process.exitCode = 1;
+        return;
+      }
+      throw err;
+    }
+  } finally {
     rl.close();
-  });
+  }
 }
 
-encryptOrDecrypt();
+if (require.main === module) {
+  runCli();
+}
+
+module.exports = { runCli, formatMatrix };
